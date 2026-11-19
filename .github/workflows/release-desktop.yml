@@ -45,7 +45,7 @@ jobs:
           if (@($setup).Count -ne 1) { throw 'Installer fehlt oder ist nicht eindeutig.' }
           $hash = (Get-FileHash -LiteralPath $setup.FullName).Hash.ToLowerInvariant()
           $checksum = $setup.FullName + '.sha256'
-          "$hash  $($setup.Name)" | Set-Content -LiteralPath $checksum -Encoding ascii
+          [IO.File]::WriteAllText($checksum, "$hash  $($setup.Name)`n", [Text.Encoding]::ASCII)
           "installer=$($setup.FullName)" >> $env:GITHUB_OUTPUT
           "checksum=$checksum" >> $env:GITHUB_OUTPUT
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7

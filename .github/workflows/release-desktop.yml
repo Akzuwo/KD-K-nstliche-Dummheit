@@ -1,0 +1,78 @@
+name: KD Desktop Windows
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+    paths:
+      - 'desktop/**'
+      - '.github/workflows/release-desktop.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kd-desktop-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: windows-2025
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Rust installieren
+        shell: pwsh
+        run: |
+          rustup toolchain install 1.98.0 --profile minimal --no-self-update
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          'RUSTUP_TOOLCHAIN=1.98.0' >> $env:GITHUB_ENV
+      - name: Testen und Windows-Installer bauen
+        id: setup
+        shell: pwsh
+        env:
+          KD_UPDATE_REPOSITORY: ${{ github.repository }}
+        run: |
+          $tag = if ($env:GITHUB_REF_TYPE -eq 'tag') { $env:GITHUB_REF_NAME } else { '' }
+          ./desktop/scripts/build.ps1 -ExpectedTag $tag
+          $build = (Get-Content -LiteralPath 'desktop/last-build.txt' -Raw).Trim()
+          & (Join-Path $build 'app/runtime/cpu/llama-server.exe') --version
+          if ($LASTEXITCODE -ne 0) { throw 'Die mitgelieferte CPU-Laufzeit startet nicht.' }
+          $setup = Get-ChildItem -LiteralPath $build -File -Filter 'KD-Desktop-*-Setup.exe'
+          if (@($setup).Count -ne 1) { throw 'Installer fehlt oder ist nicht eindeutig.' }
+          $hash = (Get-FileHash -LiteralPath $setup.FullName).Hash.ToLowerInvariant()
+          $checksum = $setup.FullName + '.sha256'
+          "$hash  $($setup.Name)" | Set-Content -LiteralPath $checksum -Encoding ascii
+          "installer=$($setup.FullName)" >> $env:GITHUB_OUTPUT
+          "checksum=$checksum" >> $env:GITHUB_OUTPUT
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: kd-desktop-windows-x64
+          path: |
+            ${{ steps.setup.outputs.installer }}
+            ${{ steps.setup.outputs.checksum }}
+          if-no-files-found: error
+
+  publish:
+    if: github.event_name == 'push' && github.ref_type == 'tag'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: kd-desktop-windows-x64
+          path: release
+      - name: GitHub Release veröffentlichen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          cd release
+          sha256sum --check ./*.sha256
+          gh release create "$GITHUB_REF_NAME" ./*.exe ./*.sha256 \
+            --repo "$GITHUB_REPOSITORY" --verify-tag --generate-notes --latest

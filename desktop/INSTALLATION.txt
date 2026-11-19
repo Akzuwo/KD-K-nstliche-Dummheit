@@ -1,0 +1,20 @@
+KD Desktop
+
+Die Version der Anwendung ist unabhängig von den importierten Modellversionen.
+
+Beim ersten Start ein KD-Modell-ZIP importieren. Der Installer enthält keine Gewichte.
+Es wird keine Internetverbindung für Chats benötigt. WebView2 wird bei Bedarf aus
+der enthaltenen Microsoft-Laufzeit installiert. Kein Python, Node.js, .NET oder
+separater Browser erforderlich.
+
+Daten: %LOCALAPPDATA%\KD Desktop\
+Chats: chats.sqlite3 (SQLite), Modelle: models\, Diagnose: logs\.
+Deinstallation behält die Daten standardmässig. Interaktiv ist vollständiges
+Entfernen ausdrücklich auswählbar. Bei stiller Deinstallation bleiben Daten erhalten.
+
+CPU-Backend enthalten. NVIDIA CUDA optional; siehe README.md im Quellprojekt.
+KD-Modelle sind experimentell: Fehler, Wiederholungen und kurze Antworten sind möglich.
+
+Die App prüft GitHub Releases auf neue stabile Versionen und installiert ein
+bereits heruntergeladenes Update automatisch beim Schliessen.
+Die App ist nicht digital signiert. Windows kann daher eine Herausgeberwarnung anzeigen.

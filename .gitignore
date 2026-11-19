@@ -1,0 +1,25 @@
+# This repository ships KD Desktop. Other KD components live only in the local workspace.
+/*
+!/.gitignore
+!/README.md
+!/.github/
+!/.github/workflows/
+/.github/workflows/*
+!/.github/workflows/release-desktop.yml
+!/desktop/
+
+/desktop/.impeccable/
+/desktop/target/
+/desktop/runtime/
+/desktop/dependency-metadata.json
+/desktop/last-*.txt
+/desktop/ui-test-location.json
+/desktop/build-*.log
+/desktop/.env*
+*.gguf
+*.safetensors
+*.zip
+*.exe
+*.dll
+*.db
+*.sqlite*

@@ -1,0 +1,46 @@
+[package]
+name = "kd-desktop"
+version = "1.1.0"
+edition = "2024"
+license = "MIT"
+description = "KD Desktop — lokale Desktop-Chats"
+
+[features]
+ui-check = []
+
+[[bin]]
+name = "kd-ui-check"
+path = "src/bin/kd-ui-check.rs"
+required-features = ["ui-check"]
+
+[dependencies]
+anyhow = "1"
+dioxus = { version = "=0.7.3", default-features = false, features = ["desktop", "lib", "launch"] }
+directories = "6"
+futures-util = "0.3"
+pulldown-cmark = "0.13"
+ammonia = "4"
+reqwest = { version = "0.12", default-features = false, features = ["json", "stream", "native-tls"] }
+rfd = "0.15"
+rusqlite = { version = "0.38", features = ["bundled"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+semver = "1"
+sha2 = "0.10"
+tokio = { version = "1", features = ["rt-multi-thread", "time", "macros", "sync"] }
+uuid = { version = "1", features = ["v4", "serde"] }
+zip = { version = "2", default-features = false, features = ["deflate"] }
+image = { version = "0.25", default-features = false, features = ["png"] }
+
+[build-dependencies]
+winresource = "0.1"
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_System_JobObjects", "Win32_Security", "Win32_System_Threading"] }
+
+[dev-dependencies]
+tempfile = "3"
+
+[profile.release]
+strip = true
+lto = "thin"
